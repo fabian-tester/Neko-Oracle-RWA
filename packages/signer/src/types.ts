@@ -1,6 +1,11 @@
+import { KeyObject } from 'crypto';
+
 /**
  * Type definitions for the Signer package
  */
+
+export type SignerAlgorithm = 'ed25519';
+export type KeyMaterial = string | KeyObject;
 
 /**
  * Represents aggregated stock price data that will be signed
@@ -26,6 +31,14 @@ export interface SignedPriceProof {
  * Configuration options for signing
  */
 export interface SignerConfig {
-  privateKey: string;
-  algorithm?: string;
+  privateKey: KeyMaterial;
+  algorithm?: SignerAlgorithm;
+}
+
+/**
+ * Configuration options for verification
+ */
+export interface VerifyProofOptions {
+  publicKey?: KeyMaterial;
+  algorithm?: SignerAlgorithm;
 }
