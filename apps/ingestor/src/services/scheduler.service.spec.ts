@@ -2,11 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { SchedulerService } from './scheduler.service';
 import { PriceFetcherService } from './price-fetcher.service';
+import { PriceSnapshotsService } from './price-snapshots.service';
+import { PriceStreamService } from './price-stream.service';
 
 describe('SchedulerService', () => {
   let service: SchedulerService;
   let priceFetcherService: jest.Mocked<PriceFetcherService>;
   let configService: jest.Mocked<ConfigService>;
+  let snapshots: jest.Mocked<PriceSnapshotsService>;
+  let stream: jest.Mocked<PriceStreamService>;
 
   const mockPrices = [
     { symbol: 'AAPL', price: 150.25, timestamp: Date.now(), source: 'MockProvider' },
@@ -18,6 +22,23 @@ describe('SchedulerService', () => {
       fetchRawPrices: jest.fn().mockResolvedValue(mockPrices),
       getRawPrices: jest.fn().mockReturnValue(mockPrices),
       getSymbols: jest.fn().mockReturnValue(['AAPL', 'GOOGL']),
+    };
+
+    const mockSnapshots = {
+      ingest: jest.fn().mockReturnValue([
+        {
+          symbol: 'AAPL',
+          price: 150.25,
+          source: 'MockProvider',
+          timestamp: new Date(mockPrices[0].timestamp).toISOString(),
+        },
+      ]),
+      getLatest: jest.fn(),
+      getHistorical: jest.fn(),
+    };
+
+    const mockStream = {
+      broadcastPrices: jest.fn(),
     };
 
     const mockConfigService = {
@@ -35,12 +56,16 @@ describe('SchedulerService', () => {
         SchedulerService,
         { provide: PriceFetcherService, useValue: mockPriceFetcherService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: PriceSnapshotsService, useValue: mockSnapshots },
+        { provide: PriceStreamService, useValue: mockStream },
       ],
     }).compile();
 
     service = module.get<SchedulerService>(SchedulerService);
     priceFetcherService = module.get(PriceFetcherService);
     configService = module.get(ConfigService);
+    snapshots = module.get(PriceSnapshotsService);
+    stream = module.get(PriceStreamService);
   });
 
   afterEach(() => {
@@ -67,6 +92,8 @@ describe('SchedulerService', () => {
       // Wait for immediate fetch
       await new Promise(resolve => setTimeout(resolve, 50));
       expect(priceFetcherService.fetchRawPrices).toHaveBeenCalled();
+      expect(snapshots.ingest).toHaveBeenCalled();
+      expect(stream.broadcastPrices).toHaveBeenCalled();
     });
 
     it('should not start if already running', () => {
@@ -84,6 +111,8 @@ describe('SchedulerService', () => {
       // Wait for initial fetch + one interval
       await new Promise(resolve => setTimeout(resolve, 1100));
       expect(priceFetcherService.fetchRawPrices.mock.calls.length).toBeGreaterThanOrEqual(2);
+      expect(snapshots.ingest.mock.calls.length).toBeGreaterThanOrEqual(2);
+      expect(stream.broadcastPrices.mock.calls.length).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -121,6 +150,7 @@ describe('SchedulerService', () => {
   describe('error handling', () => {
     it('should handle fetch errors gracefully', async () => {
       priceFetcherService.fetchRawPrices.mockRejectedValueOnce(new Error('Fetch failed'));
+      jest.spyOn((service as any).logger, 'error').mockImplementation(() => undefined);
 
       service.startScheduler();
       await new Promise(resolve => setTimeout(resolve, 50));

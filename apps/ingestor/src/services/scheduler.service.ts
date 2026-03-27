@@ -1,6 +1,8 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PriceFetcherService } from './price-fetcher.service';
+import { PriceSnapshotsService } from './price-snapshots.service';
+import { PriceStreamService } from './price-stream.service';
 
 @Injectable()
 export class SchedulerService implements OnModuleInit, OnModuleDestroy {
@@ -12,6 +14,8 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly configService: ConfigService,
     private readonly priceFetcherService: PriceFetcherService,
+    private readonly snapshots: PriceSnapshotsService,
+    private readonly stream: PriceStreamService,
   ) {
     this.fetchIntervalMs = this.configService.get<number>('FETCH_INTERVAL_MS', 60000);
   }
@@ -67,6 +71,8 @@ export class SchedulerService implements OnModuleInit, OnModuleDestroy {
 
     try {
       const prices = await this.priceFetcherService.fetchRawPrices();
+      const normalized = this.snapshots.ingest(prices);
+      this.stream.broadcastPrices(normalized);
       const duration = Date.now() - startTime;
 
       this.logger.log(

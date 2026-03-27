@@ -4,6 +4,9 @@ import { PriceFetcherService } from '../services/price-fetcher.service';
 import { StockService } from '../services/stock.service';      
 import { FinnhubAdapter } from '../providers/finnhub.adapter';
 import { SchedulerService } from '../services/scheduler.service';
+import { PriceSnapshotsService } from '../services/price-snapshots.service';
+import { IngestorWsService } from '../websocket/ingestor-ws.service';
+import { PriceStreamService } from '../services/price-stream.service';
 
 @Module({
   controllers: [PricesController],
@@ -11,8 +14,11 @@ import { SchedulerService } from '../services/scheduler.service';
     PriceFetcherService, 
     StockService,        
     FinnhubAdapter,
-    SchedulerService
+    PriceSnapshotsService,
+    IngestorWsService,
+    PriceStreamService,
+    SchedulerService,
   ],
-  exports: [PriceFetcherService, StockService, SchedulerService], 
+  exports: [PriceFetcherService, StockService, SchedulerService, PriceSnapshotsService], 
 })
 export class PricesModule {}
