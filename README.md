@@ -131,6 +131,14 @@ npm ci && npm run lint && npm run check-types && npm run build && npm test
 
 CI runs these same steps automatically on every push and PR to `main` and `develop`.
 
+## 🤝 Contributing & Community
+
+- [Contributing Guide](./CONTRIBUTING.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Security Policy](./SECURITY.md)
+
+We welcome contributions and encourage responsible collaboration.
+
 ## 📄 License
 
 MIT License
