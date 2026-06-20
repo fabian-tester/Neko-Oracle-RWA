@@ -1,4 +1,4 @@
-# 📌 Stellar Stock Price Oracle
+# Stellar Stock Price Oracle
 
 An open-source **off-chain oracle system** that provides **real-world stock price data** to the **Stellar network** in a secure, modular, SEP-compliant way.
 
