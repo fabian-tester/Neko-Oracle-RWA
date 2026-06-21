@@ -2,7 +2,7 @@
 
 An open-source **off-chain oracle system** that provides **real-world stock price data** to the **Stellar network** in a secure, modular, SEP-compliant way.
 
-## 🎯 What this Project Does
+## What this Project Does
 
 This project fetches stock prices from multiple external financial APIs, normalizes and aggregates them, cryptographically signs the results, exposes them via a backend API, and supports on-chain submission to a Stellar oracle contract, so smart contracts can depend on real stock prices.
 
